@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
-from model import GoogLeNet
+from model import DenseNet
 from utils import *
 from config import config
 from data import DataLoader
@@ -23,8 +23,8 @@ def main():
     if args.cuda and not torch.cuda.is_available():
         raise Exception('No GPU found, please run without --cuda')
 
-    print('\n=> Build GoogleNet..')
-    model = GoogLeNet()
+    print('\n=> Build DenseNet..')
+    model = DenseNet(24,250, 0.2,100,True)
     print(model)
     print('==> Complete build')
 

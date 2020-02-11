@@ -1,7 +1,7 @@
 import argparse
 
 def config():
-    parser = argparse.ArgumentParser(description='GoogleNet PyTorch')
+    parser = argparse.ArgumentParser(description='DenseNet PyTorch')
     parser.add_argument('dataset', metavar='DATA', default='cifar100',
                         help='dataset: cifar10')
     parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
