@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-class Bottleneck(nn.Module):
+class DenseBlock(nn.Module):
     def __init__(self,input_channel,growth_rate):
-        super(Bottleneck,self).__init__()
+        super(DenseBlock,self).__init__()
         inter_channel = growth_rate*4
         self.bn1 = nn.BatchNorm2d(input_channel)
         self.conv1 = nn.Conv2d(input_channel,inter_channel,kernel_size=1,bias=False)
@@ -15,16 +15,6 @@ class Bottleneck(nn.Module):
     def forward(self,x):
         out = self.conv1(F.relu(self.bn1(x)))
         out = self.conv2(F.relu(self.bn2(out)))
-        out = torch.cat((x,out),1)
-        return out
-
-class SingleLayer(nn.Module):
-    def __init__(self,input_channel,growth_rate):
-        super(SingleLayer,self).__init__()
-        self.bn1 = nn.BatchNorm2d(input_channel)
-        self.conv1 = nn.Conv2d(input_channel,growth_rate,kernel_size=3,padding=1,bias=False)
-    def forward(self,x):
-        out = self.conv1(F.relu(self.bn1(x)))
         out = torch.cat((x,out),1)
         return out
 
@@ -39,29 +29,33 @@ class Transition(nn.Module):
         return out
 
 class DenseNet(nn.Module):
-    def __int__(self,growthRate,depth,reduction,nClasses,bottleneck):
+    def __int__(self,growthRate,depth,reduction,nClasses):
         super(DenseNet,self).__init__()
 
         nDenseBlocks = (depth-4) //3
-        if bottleneck:
-            nDenseBlocks //=2
+        nDenseBlocks //=2
 
         nChannels = 2 * growthRate
-        self.conv1 = nn.Conv2d(3, nChannels, kernel_size=3, padding=1,
-                               bias=False)
-        self.dense1 = self._make_dense(nChannels, growthRate, nDenseBlocks, bottleneck)
+        self.conv1 = nn.Conv2d(3, nChannels, kernel_size=3, padding=1, bias=False)
+        self.dense1 = self._make_dense(nChannels, growthRate, nDenseBlocks)
         nChannels += nDenseBlocks * growthRate
         nOutChannels = int(math.floor(nChannels * reduction))
         self.trans1 = Transition(nChannels, nOutChannels)
 
         nChannels = nOutChannels
-        self.dense2 = self._make_dense(nChannels, growthRate, nDenseBlocks, bottleneck)
+        self.dense2 = self._make_dense(nChannels, growthRate, nDenseBlocks)
         nChannels += nDenseBlocks * growthRate
         nOutChannels = int(math.floor(nChannels * reduction))
         self.trans2 = Transition(nChannels, nOutChannels)
 
         nChannels = nOutChannels
-        self.dense3 = self._make_dense(nChannels, growthRate, nDenseBlocks, bottleneck)
+        self.dense3 = self._make_dense(nChannels, growthRate, nDenseBlocks)
+        nChannels += nDenseBlocks * growthRate
+        nOutChannels = int(math.floor(nChannels * reduction))
+        self.trans3 = Transition(nChannels,nOutChannels)
+
+        nChannels = nOutChannels
+        self.dense4 = self._make_dense(nChannels, growthRate, nDenseBlocks)
         nChannels += nDenseBlocks * growthRate
 
         self.bn1 = nn.BatchNorm2d(nChannels)
@@ -77,13 +71,10 @@ class DenseNet(nn.Module):
             elif isinstance(m, nn.Linear):
                 m.bias.data.zero_()
 
-    def _make_dense(self, nChannels, growthRate, nDenseBlocks, bottleneck):
+    def _make_dense(self, nChannels, growthRate, nDenseBlocks):
         layers = []
         for i in range(int(nDenseBlocks)):
-            if bottleneck:
-                layers.append(Bottleneck(nChannels, growthRate))
-            else:
-                layers.append(SingleLayer(nChannels, growthRate))
+            layers.append(DenseBlock(nChannels, growthRate))
             nChannels += growthRate
         return nn.Sequential(*layers)
 
@@ -91,7 +82,9 @@ class DenseNet(nn.Module):
         out = self.conv1(x)
         out = self.trans1(self.dense1(out))
         out = self.trans2(self.dense2(out))
-        out = self.dense3(out)
-        out = torch.squeeze(F.avg_pool2d(F.relu(self.bn1(out)), 8))
+        out = self.trans3(self.dense3(out))
+        out = self.dense4(out)
+        out = F.avg_pool2d(F.relu(self.bn1(out)))
+        out = out.view(out.size(0), -1)
         out = F.log_softmax(self.fc(out))
         return out
