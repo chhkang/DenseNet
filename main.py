@@ -132,16 +132,10 @@ def main():
                  'model': model.state_dict(),
                  'optimizer': optimizer.state_dict()}
         save_model(state, epoch, is_best, args)
-        list_Acc1.append(acc1_valid)
-        list_Acc5.append(acc5_valid)
+        list_Acc1.append(acc1_valid.item())
+        list_Acc5.append(acc5_valid.item())
         list_epoch.append(epoch)
-    plt.plot(list_epoch,list_Acc1)
-    plt.plot(list_epoch, list_Acc5)
-    print(list_Acc1,list_Acc5)
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.lengend(['ACC1','ACC5'])
-    plt.show()
+    save_acc(list_Acc1,list_Acc5,list_epoch)
     avg_train_time = train_time / (args.epochs-start_epoch)
     avg_valid_time = validate_time / (args.epochs-start_epoch)
     total_train_time = train_time + validate_time

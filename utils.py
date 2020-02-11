@@ -35,18 +35,28 @@ def load_model(model, ckpt_file, args):
 
 
 def save_model(state, epoch, is_best, args):
-    if epoch %5 == 0:
-        dir_ckpt = pathlib.Path('checkpoint')
-        dir_path = dir_ckpt / args.dataset
-        dir_path.mkdir(parents=True, exist_ok=True)
+      dir_ckpt = pathlib.Path('checkpoint')
+      dir_path = dir_ckpt / args.dataset
+      dir_path.mkdir(parents=True, exist_ok=True)
 
-        model_file = dir_path / 'ckpt_epoch_{}.pth'.format(epoch)
-        torch.save(state, model_file)
+      model_file = dir_path / 'ckpt_epoch_{}.pth'.format(epoch)
+      torch.save(state, model_file)
 
-        if is_best:
-            shutil.copyfile(model_file, dir_path / 'ckpt_best.pth')
+      if is_best:
+          shutil.copyfile(model_file, dir_path / 'ckpt_best.pth')
 
+def save_acc(top1,top5,epoch):
+    f = open("accuracy.txt",'w')
+    top1 = ','.join(map(str,top1))
+    top5 = ','.join(map(str,top5))
+    epoch = ','.join(map(str,epoch))
+    f.write(top1)
+    f.write('\n')
+    f.write(top5)
+    f.write('\n')
+    f.write(epoch)
 
+    f.close()
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self, name, fmt=':f'):
@@ -90,8 +100,13 @@ class ProgressMeter(object):
 
 def adjust_learning_rate(optimizer, epoch, lr):
     """Sets the learning rate, decayed rate of 0.04 every 8 epoches"""
-    if epoch in [30,60,80,100]:
-        lr = lr * 0.1
+    if epoch <=30:
+      lr = 0.1
+    elif epoch <=60:
+      lr = 0.01
+    else:
+      lr = 0.001
+
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
