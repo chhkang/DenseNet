@@ -86,5 +86,5 @@ class DenseNet(nn.Module):
         out = self.dense4(out)
         out = F.avg_pool2d(F.relu(self.bn1(out)))
         out = out.view(out.size(0), -1)
-        out = F.log_softmax(self.fc(out))
+        out = self.fc(out)
         return out

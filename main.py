@@ -25,7 +25,7 @@ def main():
 
     print('\n=> Build DenseNet..')
     #growthRate,depth,reduction,nClasses)
-    model = DenseNet(24,250,0.2,100)
+    model = DenseNet(24,100,0.2,100)
     print(model)
     print('==> Complete build')
 
