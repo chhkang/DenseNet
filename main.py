@@ -24,8 +24,8 @@ def main():
         raise Exception('No GPU found, please run without --cuda')
 
     print('\n=> Build DenseNet..')
-    #growthRate,depth,reduction,nClasses,bottleneck)
-    model = DenseNet(growthRate = 10)
+    #growthRate,depth,reduction,nClasses)
+    model = DenseNet(24,250,0.2,100)
     print(model)
     print('==> Complete build')
 

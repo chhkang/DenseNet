@@ -29,7 +29,7 @@ class Transition(nn.Module):
         return out
 
 class DenseNet(nn.Module):
-    def __int__(self,growthRate,depth,reduction,nClasses):
+    def __init__(self, growthRate, depth, reduction, nClasses):
         super(DenseNet,self).__init__()
 
         nDenseBlocks = (depth-4) //3
