@@ -10,7 +10,7 @@ class DenseBlock(nn.Module):
         self.bn1 = nn.BatchNorm2d(input_channel)
         self.conv1 = nn.Conv2d(input_channel,inter_channel,kernel_size=1,bias=False)
         self.bn2 = nn.BatchNorm2d(inter_channel)
-        self.conv2 = nn.Conv2(inter_channel,growth_rate,kernel_size=3,padding=1,bias=False)
+        self.conv2 = nn.Conv2d(inter_channel,growth_rate,kernel_size=3,padding=1,bias=False)
 
     def forward(self,x):
         out = self.conv1(F.relu(self.bn1(x)))
